@@ -28,38 +28,107 @@ const baseDeDatos = {
   ],
 };
 
-// ACTIVIDAD
+window.onload = () => {
 
-// Paso a paso:
+  const form = document.forms.login;
+  const password = form.password;
+  const btnIniciarSesion = form.querySelector("button.login-btn");
 
-// 1) Al momento de que la persona inicia sesión, si las validaciones que ya tenemos implementadas
-// han sido exitosas, deberemos almacenar la información del usuario en el LocalStorage.
+  cargarInformacion()
 
-// 2) Al mensaje de bienvenida que ya teníamos implementado, deberemos agregarle el nombre de la
-// persona y un botón de "Cerrar Sesión".
+  btnIniciarSesion.onclick = event => {
+    event.preventDefault();
+    iniciarSesion(form.email.value, password.value);
+  };
 
-// 3) Una vez iniciada la sesión, la misma se deberá mantener en ese estado para el caso de que la persona
-// recargue la página. Para ello, deberás validar si existe información del usuario al momento en
-// que se produce la carga de la página, y en base a dicha condción decidir que elementos mostrar.
+  password.onkeypress = event => {
+    if (event.key === "Enter") {
+      iniciarSesion(form.email.value, password.value);
+    }
+  };
+};
 
-// 3) Para el caso de que la persona haga click en el botón "Cerrar Sesión", se deberá eliminar
-// la información del usuario, mostrar un mensaje indicando que se ha cerrado la sesión, y recargar
-// la página para mostrar nuevamente el formulario de login.
+function cargarInformacion() {
+  const formOculto = localStorage.getItem("visibilidadForm");
+  if (formOculto === "true") {
+    document.forms.login.classList.add("hidden");
+    mostrarNombreUsuario();
+    agregarBotonCerrarSesion();
+  }
+}
 
-/* 
-TIPS:
-  - Para lograr los objetivos de este ejercicio, deberás valerte de algunos eventos y métodos que vimos en
-    las clases anteriores. Te invitamos a que revises los recursos en caso de que tengas dudas, ya que allí
-    encontrarás todas las respuestas que necesitas para completar la actividad.
+function guardarInformacion(email) {
+  const formOculto = document.forms.login.classList.contains("hidden");
+  if (formOculto) {
+    localStorage.setItem("visibilidadForm", "true");
+    localStorage.setItem("h1", document.querySelector("h1").innerText);
+    localStorage.setItem("usuario", obtenerNombreUsuario(email));
+  }
+}
 
-  - Recuerda que puedes seleccionar y manipular los elementos del archivo index.html, usando los
-    recursos que Javascript te ofrece para ello. Además, en el archivo styles.css tiene algunas clases y 
-    estilos predefinidos para ayudarte a completar la actividad.
+function iniciarSesion(email, password) {
+  const errorContainer = document.querySelector("#error-container");
+  errorContainer.classList.add("hidden");
+  document.querySelector("#loader").classList.remove("hidden");
+  setTimeout(() => {
+    document.querySelector("#loader").classList.add("hidden");
+    if (validarDatos(email, password)) {
+      loginExitoso();
+    } else {
+      errorContainer.classList.remove("hidden");
+      errorContainer.innerHTML = "<small>Alguno de los datos ingresados son incorrectos</small>";
+    } 
+    guardarInformacion(email);
+  }, 3000);
+}
 
-  - Al momento de guardar información del usuario en el navegador, recuerda que debemos almacenar solo la 
-    información necesaria, y EN NINGUN CASO DEBEMOS GUARDAR LA CONTRASEÑA. Por ello, deberás seleccionar y
-    separar la información que tienes que almacenar, a partir del objeto que contiene la información del 
-    usuario.
+function validarDatos(email, password) {
+  const mailEsValido = validarEmail(email);
+  const passEsValida = validarPassword(password);
+  const existeUsr = existeUsuario(email, password);
+  return mailEsValido && passEsValida && existeUsr;
+}
 
-   ¡Manos a la obra!
- */
+function validarEmail(email) {
+  const regex = /^[a-zA-Z0-9.!]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/g;
+  return regex.test(email);
+}
+
+function validarPassword(password) {
+  const regex = /^[a-zA-Z0-9]{5,}/g;
+  return regex.test(password);
+}
+
+function existeUsuario(email, password) {
+  const usuario = baseDeDatos.usuarios.find(usr => usr.email === email && usr.password === password);
+  return usuario !== undefined;
+}
+
+function loginExitoso() {
+  document.forms.login.classList.add("hidden");
+  mostrarNombreUsuario();
+  agregarBotonCerrarSesion();
+}
+
+function agregarBotonCerrarSesion() {
+  document.querySelector("main").innerHTML += "<button class=\"logout-btn\">Cerrar Sesión</button>";
+  document.querySelector(".logout-btn").onclick = event => {
+    event.preventDefault();
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+function mostrarNombreUsuario() {
+  const usuario = localStorage.getItem("usuario");
+  const h1 = document.querySelector("h1");
+  if (usuario !== null) {
+    h1.innerText = "Bienvenide al sitio " + usuario + " 😀";
+  } else {
+    h1.innerText = "Bienvenide al sitio 😀";
+  }
+}
+
+function obtenerNombreUsuario(email) {
+  return baseDeDatos.usuarios.find(usr => usr.email === email).name;
+}

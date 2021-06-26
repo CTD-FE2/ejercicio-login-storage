@@ -54,7 +54,7 @@ input {
   color: rgb(26, 25, 25);
 }
 
-.login-btn {
+.login-btn, .logout-btn {
   padding: 0.5rem;
   border-radius: 5px;
   background-color: #ec183f;
@@ -64,12 +64,12 @@ input {
   margin-top: 1rem;
 }
 
-.login-btn:hover {
+.login-btn:hover, .logout-btn {
   cursor: pointer;
   background-color: #c21736;
 }
 
-.login-btn:active {
+.login-btn:active, .logout-btn {
   box-shadow: none;
 }
 
